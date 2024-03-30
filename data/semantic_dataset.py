@@ -12,17 +12,17 @@ from typing import List, Pattern, Union
 
 import numpy as np
 import torch
-from phonemizer.backend import EspeakBackend
-from phonemizer.backend.espeak.language_switch import LanguageSwitch
-from phonemizer.backend.espeak.words_mismatch import WordMismatch
-from phonemizer.punctuation import Punctuation
-from phonemizer.separator import Separator
+#from phonemizer.backend import EspeakBackend
+#from phonemizer.backend.espeak.language_switch import LanguageSwitch
+#from phonemizer.backend.espeak.words_mismatch import WordMismatch
+#from phonemizer.punctuation import Punctuation
+#from phonemizer.separator import Separator
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 from data.collation import get_text_semantic_token_collater
 
-
+'''
 class TextTokenizer:
     """Phonemize Text."""
 
@@ -78,7 +78,7 @@ class TextTokenizer:
             text, separator=self.separator, strip=strip, njobs=1
         )
         return [self.to_list(p) for p in phonemized]
-
+'''
 
 class Collator:
     def collate(self, batch):
@@ -105,7 +105,7 @@ class ConcatenateSemanticDataset(Dataset):
             self, manifest_path: str, symbol_table_path: str, 
             n_samples: int = 0, max_duration=15):
         self.data = []
-        self.phonemizer = TextTokenizer()
+        #self.phonemizer = TextTokenizer()
         self.text_collater = get_text_semantic_token_collater(
             symbol_table_path)
         self.manifest_path = manifest_path
