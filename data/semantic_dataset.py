@@ -168,7 +168,13 @@ class ConcatenateSemanticDataset(Dataset):
                     continue
                 text = value["text"]
                 phoneme = value["phoneme"]
-                npy_path = f"{dataset_path}/audios-speech-tokenizer/semantic/{key.split('.wav')[0]}.npy"  # noqa
+                if 'mp3' in key:
+                  npy_path = f"{dataset_path}/audios-speech-tokenizer/semantic/{key.split('.mp3')[0]}.npy"  # noqa
+                elif 'wav' in key:
+                  npy_path = f"{dataset_path}/audios-speech-tokenizer/semantic/{key.split('.wav')[0]}.npy"  # noqa
+                else:
+                  npy_path = f"{dataset_path}/audios-speech-tokenizer/semantic/{key.split('.flac')[0]}.npy"  # noqa
+
                 datapoint = {
                     "text": text,
                     "semantic_path": npy_path,
