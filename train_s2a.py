@@ -151,7 +151,7 @@ if __name__ == "__main__":
         ),
         verbose=True,
         save_last=True,
-        save_top_k=3,
+        save_top_k=20,
         monitor="val/dataset_0/acc_top_5",
         mode='max'
     )

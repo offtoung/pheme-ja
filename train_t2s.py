@@ -90,7 +90,8 @@ if __name__ == "__main__":
     current_timestamp = datetime.now()
     current_timestamp = current_timestamp.strftime("%Y-%m-%d-%H:%M:%S")
     if args.resume_from_checkpoint is not None:
-        output_dir = Path(args.resume_from_checkpoint).parent
+        #output_dir = Path(args.resume_from_checkpoint).parent
+        output_dir = Path(args.output_dir)
     else:
         output_dir = Path(args.output_dir)
 
@@ -103,7 +104,7 @@ if __name__ == "__main__":
         num_train_epochs=args.n_epochs,
         save_steps=args.save_steps,
         eval_steps=args.save_steps,
-        save_total_limit=3,
+        save_total_limit=20,
         dataloader_num_workers=args.nworkers,
         evaluation_strategy="steps",
         save_strategy="steps",
