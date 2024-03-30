@@ -23,6 +23,85 @@ from data.semantic_dataset import TextTokenizer
 from modules.s2a_model import Pheme
 from modules.vocoder import VocoderType
 
+import re
+import MeCab
+import jaconv
+
+kana_symbols = ['ァ', 'ア', 'ィ', 'イ', 'ゥ', 'ウ', 'ェ', 'エ', 'ォ', 'オ', 'カ', 'ガ', 'キ', 'ギ', 'ク', 'グ', 'ケ', 'ゲ', 'コ', 'ゴ', 'サ', 'ザ', 'シ', 'ジ', 'ス', 'ズ', 'セ', 'ゼ', 'ソ', 'ゾ', 'タ', 'ダ', 'チ', 'ッ', 'ツ', 'テ', 'デ', 'ト', 'ド', 'ナ', 'ニ', 'ヌ', 'ネ', 'ノ', 'ハ', 'バ', 'パ', 'ヒ', 'ビ', 'ピ', 'フ', 'ブ', 'プ', 'ヘ', 'ベ', 'ペ', 'ホ', 'ボ', 'ポ', 'マ', 'ミ', 'ム', 'メ', 'モ', 'ャ', 'ヤ', 'ュ', 'ユ', 'ョ', 'ヨ', 'ラ', 'リ', 'ル', 'レ', 'ロ', 'ワ', 'ン', 'ヴ'] 
+
+pmarks = ['_', '！', '？', '!', '?', ']', '[', '。', '、', 'ー', ' ']
+acceptable_symbols = set(kana_symbols + pmarks)
+
+class Phonemizer(): 
+  def __init__(self): 
+   self.tagger = tagger = MeCab.Tagger("-d unidic-tdmelodic")
+
+  def __call__(self, text):
+    text = re.sub(r"(「|」|（|）|｛|｝|【|】|『|』|［|］|＜|＞|《|》|〈|〉|\(|\)|[|]|{|}|<|>)", "", text)
+
+    text = text.replace("…", "")
+    s = jaconv.normalize(text, "NFKC").strip()
+
+    m = self.tagger.parse(s).splitlines()[:-1]
+    kana = ''
+    was_pmark = False
+    for idx, elem in enumerate(m):
+        if '\t' not in elem: 
+            continue
+        cols = elem.split('\t')
+        pmark = "補助記号" in cols[4]
+
+        if pmark:
+          kana += cols[3]
+          was_pmark = True
+        else:
+          if idx > 0 and not was_pmark:
+            kana += "_" 
+           
+          was_pmark = False
+
+          yomi = cols[1].split(',')[-1]
+          if yomi == '*': 
+            yomi = ""
+          kana += yomi
+
+    kana = jaconv.hira2kata(kana)
+
+
+    kana = jaconv.z2h(kana, kana=False, digit=True, ascii=True)
+
+    kana = kana.replace("ヴァ", "バ").replace("ヴィ", "ビ").replace("ヴェ", "ベ").replace("ヴォ", "ボ").replace("ヴ", "ブ").replace('ヂ', 'ジ').replace('ヅ', 'ズ').replace('ヂ', 'ジ').replace('ヮ', 'ワ').replace('ヱ', 'エ').replace('ヲ', 'オ').replace('・', '').replace("]ー", "ー]").replace("[ー", "ー[")
+
+    kana = "".join([x for x in list(kana) if x in acceptable_symbols])
+
+    hira = jaconv.kata2hira(kana)
+    jl = jaconv.hiragana2julius(hira)
+
+    jl = jl.replace("ゃ", " y a ")
+    jl = jl.replace("ゅ", " y u ")
+    jl = jl.replace("ょ", " y o ")
+    jl = jl.replace("ぁ", " a ")
+    jl = jl.replace("ぃ", " i ")
+    jl = jl.replace("ぅ", " u ")
+    jl = jl.replace("ぇ", " e ")
+    jl = jl.replace("ぉ", " o ")
+
+    jl = jl.replace("]", "").replace("[", "")
+    jl = jl.replace(" ", "")
+    jl = jl.replace("、", ",_").replace("。", ".")
+
+    pos = jl.find(":")
+    while pos != -1:
+      if pos > 0:
+        jl = jl[:pos]+jl[pos-1]+jl[pos+1:]
+      else:
+        jl = jl[1:]
+      pos = jl.find(":") 
+
+    #jl = jl.replace("_", " ")
+    print(jl)
+    return list(jl)
+
 # How many times one token can be generated
 MAX_TOKEN_COUNT = 100
 
@@ -34,7 +113,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--text", type=str,
-        default="I gotta say, I would never expect that to happen!"
+        default="こんにちは。お元気ですか？"
     )
     parser.add_argument(
         "--manifest_path", type=str, default="demo/manifest.json")
@@ -64,7 +143,8 @@ class PhemeClient():
         self.target_sample_rate = args.target_sample_rate
         self.featuredir = Path(args.featuredir).expanduser()
         self.collater = get_text_semantic_token_collater(args.text_tokens_file)
-        self.phonemizer = TextTokenizer()
+        #self.phonemizer = TextTokenizer()
+        self.phonemizer = Phonemizer()
     
         self.load_manifest(args.manifest_path)
 
@@ -94,7 +174,14 @@ class PhemeClient():
         with open(input_path, "rb") as f:
             for line in f:
                 temp = json.loads(line)
-                input_file[temp["audio_filepath"].split(".wav")[0]] = temp
+                audio_filepath = temp["audio_filepath"]
+                if audio_filepath[-4:] == ".wav":
+                  input_file[temp["audio_filepath"].split(".wav")[0]] = temp
+                elif audio_filepath[-5:] == ".flac":
+                  input_file[temp["audio_filepath"].split(".flac")[0]] = temp
+                elif audio_filepath[-4:] == ".mp3":
+                  input_file[temp["audio_filepath"].split(".mp3")[0]] = temp
+
         self.input_file = input_file
 
     def lazy_decode(self, decoder_output, symbol_table):
@@ -105,7 +192,7 @@ class PhemeClient():
 
     def infer_text(self, text, voice, sampling_config):
         semantic_prompt = np.load(self.args.featuredir + "/audios-speech-tokenizer/semantic/" + f"{voice}.npy")  # noqa
-        phones_seq = self.phonemizer(text)[0]
+        phones_seq = self.phonemizer(text)
         input_ids = self.collater([phones_seq])
         input_ids = input_ids.type(torch.IntTensor).to(device)
 
@@ -224,7 +311,7 @@ class PhemeClient():
     @torch.no_grad()
     def infer(
         self, text, voice="male_voice", temperature=0.7,
-        top_k=210, max_new_tokens=750,
+        top_k=210, max_new_tokens=1200,
     ):
         sampling_config = GenerationConfig.from_pretrained(
             self.args.t2s_path,
@@ -257,6 +344,6 @@ if __name__ == "__main__":
     client = PhemeClient(args)
     audio_array = client.infer(args.text, voice=args.voice)
     sf.write(os.path.join(
-        args.outputdir, f"{args.voice}.wav"), audio_array, 
+        args.outputdir, f"out.flac"), audio_array, 
         args.target_sample_rate
     )
