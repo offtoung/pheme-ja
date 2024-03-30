@@ -30,14 +30,14 @@ mkdir -p ${st_dir}
 cd ${st_dir}
 wget "https://huggingface.co/fnlp/SpeechTokenizer/resolve/main/speechtokenizer_hubert_avg/SpeechTokenizer.pt"
 wget "https://huggingface.co/fnlp/SpeechTokenizer/resolve/main/speechtokenizer_hubert_avg/config.json" 
-cd ..
+cd ../../
 ```
 
 事前学習済みの T2S および S2A モデル、辞書、話者特徴量のダウンロード:
 
 ``` bash
 git clone https://huggingface.co/offtoung/pheme-ja
-mv pheme-ja/ckpt .
+mv pheme-ja/ckpt/* ckpt/
 mv pheme-ja/unidic-tdmelodic .
 mv pheme-ja/voice .
 ```
