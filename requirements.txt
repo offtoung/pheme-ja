@@ -161,6 +161,3 @@ websockets==11.0.3
 yarl==1.9.3
 accelerate==0.26.1
 wandb==0.16.2
-mecab-python3==1.0.8
-jaconv==0.3.4
-unidic-lite==1.0.8
