@@ -4,7 +4,10 @@
 
 Pheme の詳細については、元論文 [Pheme: Efficient and Conversational Speech Generation](https://arxiv.org/pdf/2401.02839.pdf) をご覧ください。
 
-本モデルは、以下の禁止事項に該当する行為を除き、自由にご利用いただけます。
+**本モデルで生成した音声を公開する場合には使用した声のクレジットを記載してください。**
+現在使用可能な声は、[黄琴海月さん](https://kikyohiroto1227.wixsite.com/kikoto-utau/kurage) と [ルナイトネイルさん](https://runaitoneiru.fanbox.cc/posts/3786422) です。
+
+本モデルは、下記の禁止事項に該当する行為を除き、自由にご利用いただけます。
 
 **禁止事項:**
 
