@@ -25,6 +25,12 @@ pip3 install torch torchvision torchaudio
 pip3 install -r requirements.txt --no-deps
 pip3 install mecab-python3 unidic-lite jaconv
 ```
+事前学習済みの T2S および S2A モデル、辞書、話者特徴量のダウンロード:
+
+``` bash
+git clone https://huggingface.co/offtoung/pheme-ja
+mv pheme-ja/* .
+```
 
 事前学習済みの SpeechTokenizer のダウンロード
 
@@ -37,14 +43,6 @@ wget "https://huggingface.co/fnlp/SpeechTokenizer/resolve/main/speechtokenizer_h
 cd ../../
 ```
 
-事前学習済みの T2S および S2A モデル、辞書、話者特徴量のダウンロード:
-
-``` bash
-git clone https://huggingface.co/offtoung/pheme-ja
-mv pheme-ja/ckpt/* ckpt/
-mv pheme-ja/unidic-tdmelodic .
-mv pheme-ja/voice .
-```
 
 # 音声の生成
 
