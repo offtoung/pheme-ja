@@ -19,7 +19,6 @@ from transformers import GenerationConfig, T5ForConditionalGeneration
 
 import constants as c
 from data.collation import get_text_semantic_token_collater
-from data.semantic_dataset import TextTokenizer
 from modules.s2a_model import Pheme
 from modules.vocoder import VocoderType
 
@@ -138,7 +137,6 @@ class PhemeClient():
         self.outputdir = args.outputdir
         self.target_sample_rate = args.target_sample_rate
         self.collater = get_text_semantic_token_collater(args.text_tokens_file)
-        #self.phonemizer = TextTokenizer()
         self.phonemizer = Phonemizer()
     
         # T2S model
