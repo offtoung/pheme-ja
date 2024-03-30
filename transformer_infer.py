@@ -114,10 +114,7 @@ def parse_arguments():
         "--text", type=str,
         default="こんにちは。お元気ですか？"
     )
-    parser.add_argument(
-        "--manifest_path", type=str, default="demo/manifest.json")
-    parser.add_argument("--outputdir", type=str, default="demo/")
-    parser.add_argument("--featuredir", type=str, default="demo/")
+    parser.add_argument("--outputdir", type=str, default="output/")
     parser.add_argument(
         "--text_tokens_file", type=str,
         default="ckpt/unique_text_tokens.k2symbols"
@@ -130,7 +127,7 @@ def parse_arguments():
 
     parser.add_argument("--temperature", type=float, default=0.7)
     parser.add_argument("--top_k", type=int, default=210)
-    parser.add_argument("--voice", type=str, default="male_voice")
+    parser.add_argument("--voice", type=str, default="runaitoneiru")
 
     return parser.parse_args()
 
@@ -140,12 +137,9 @@ class PhemeClient():
         self.args = args
         self.outputdir = args.outputdir
         self.target_sample_rate = args.target_sample_rate
-        self.featuredir = Path(args.featuredir).expanduser()
         self.collater = get_text_semantic_token_collater(args.text_tokens_file)
         self.phonemizer = Phonemizer()
     
-        self.load_manifest(args.manifest_path)
-
         # T2S model
         self.t2s = T5ForConditionalGeneration.from_pretrained(args.t2s_path)
         self.t2s.to(device)
@@ -161,26 +155,11 @@ class PhemeClient():
         self.vocoder = vocoder.to(device)
         self.vocoder.eval()
 
-        self.spkr_embedding = Inference(
-            "pyannote/embedding",
-            window="whole",
-            use_auth_token=os.environ["HUGGING_FACE_HUB_TOKEN"],
-        )
-
-    def load_manifest(self, input_path):
-        input_file = {}
-        with open(input_path, "rb") as f:
-            for line in f:
-                temp = json.loads(line)
-                audio_filepath = temp["audio_filepath"]
-                if audio_filepath[-4:] == ".wav":
-                  input_file[temp["audio_filepath"].split(".wav")[0]] = temp
-                elif audio_filepath[-5:] == ".flac":
-                  input_file[temp["audio_filepath"].split(".flac")[0]] = temp
-                elif audio_filepath[-4:] == ".mp3":
-                  input_file[temp["audio_filepath"].split(".mp3")[0]] = temp
-
-        self.input_file = input_file
+        self.spkr_embedding = "voice" / Path(args.voice) / "spkr_emb.npy"
+        self.acoustic_prompt = np.load("voice"/Path(args.voice)/"acoustic.npy").squeeze().T
+        self.semantic_prompt = np.load("voice"/Path(args.voice)/"semantic.npy")
+        with open("voice" / Path(args.voice) / "transcript.txt", "r", encoding="utf-8") as f:
+          self.prompt_text = f.readline()
 
     def lazy_decode(self, decoder_output, symbol_table):
         semantic_tokens = map(lambda x: symbol_table[x], decoder_output)
@@ -189,7 +168,7 @@ class PhemeClient():
         return np.array(semantic_tokens)
 
     def infer_text(self, text, voice, sampling_config):
-        semantic_prompt = np.load(self.args.featuredir + "/audios-speech-tokenizer/semantic/" + f"{voice}.npy")  # noqa
+        semantic_prompt = np.load("voice" / Path(self.args.voice) / "semantic.npy")  # noqa
         phones_seq = self.phonemizer(text)
         input_ids = self.collater([phones_seq])
         input_ids = input_ids.type(torch.IntTensor).to(device)
@@ -215,40 +194,16 @@ class PhemeClient():
         # remove the prompt
         return output_semantic[len(semantic_prompt):].reshape(1, -1)
 
-    def _load_speaker_emb(self, element_id_prompt):
-        wav, _ = sf.read(self.featuredir / element_id_prompt)
-        audio = normalize(wav) * 0.95
-        speaker_emb = self.spkr_embedding(
-            {
-                "waveform": torch.FloatTensor(audio).unsqueeze(0),
-                "sample_rate": self.target_sample_rate
-            }
-        ).reshape(1, -1)
-
-        return speaker_emb
-
-    def _load_prompt(self, prompt_file_path):
-        element_id_prompt = Path(prompt_file_path).stem
-        acoustic_path_prompt =  self.featuredir / "audios-speech-tokenizer/acoustic" / f"{element_id_prompt}.npy"  # noqa
-        semantic_path_prompt =  self.featuredir / "audios-speech-tokenizer/semantic" / f"{element_id_prompt}.npy"  # noqa
-
-        acoustic_prompt = np.load(acoustic_path_prompt).squeeze().T
-        semantic_prompt = np.load(semantic_path_prompt)[None]
-
-        return acoustic_prompt, semantic_prompt
-
-    def infer_acoustic(self, output_semantic, prompt_file_path):
+    def infer_acoustic(self, output_semantic, voice):
         semantic_tokens = output_semantic.reshape(1, -1)
         acoustic_tokens = np.full(
             [semantic_tokens.shape[1], 7], fill_value=c.PAD)
 
-        acoustic_prompt, semantic_prompt = self._load_prompt(prompt_file_path)  # noqa
-        
         # Prepend prompt
         acoustic_tokens = np.concatenate(
-            [acoustic_prompt, acoustic_tokens], axis=0)
+            [self.acoustic_prompt, acoustic_tokens], axis=0)
         semantic_tokens = np.concatenate([
-            semantic_prompt, semantic_tokens], axis=1)
+            self.semantic_prompt[None], semantic_tokens], axis=1)
 
         # Add speaker
         acoustic_tokens = np.pad(
@@ -258,9 +213,8 @@ class PhemeClient():
 
         speaker_emb = None
         if self.s2a.hp.use_spkr_emb:
-            speaker_emb = self._load_speaker_emb(prompt_file_path)
             speaker_emb = np.repeat(
-                speaker_emb, semantic_tokens.shape[1], axis=0)
+                self.speaker_emb, semantic_tokens.shape[1], axis=0)
             speaker_emb = torch.from_numpy(speaker_emb).to(device)
         else:
             speaker_emb = None
@@ -269,7 +223,7 @@ class PhemeClient():
             acoustic_tokens).unsqueeze(0).to(device).long()
         semantic_tokens = torch.from_numpy(semantic_tokens).to(device).long()
         start_t = torch.tensor(
-            [acoustic_prompt.shape[0]], dtype=torch.long, device=device)
+            [self.acoustic_prompt.shape[0]], dtype=torch.long, device=device)
         length = torch.tensor([
             semantic_tokens.shape[1]], dtype=torch.long, device=device)
 
@@ -288,7 +242,7 @@ class PhemeClient():
 
         return synth_codes
 
-    def generate_audio(self, text, voice, sampling_config, prompt_file_path):
+    def generate_audio(self, text, voice, sampling_config):
         start_time = time.time()
         output_semantic = self.infer_text(
             text, voice, sampling_config
@@ -296,7 +250,7 @@ class PhemeClient():
         logging.debug(f"semantic_tokens: {time.time() - start_time}")
 
         start_time = time.time()
-        codes = self.infer_acoustic(output_semantic, prompt_file_path)
+        codes = self.infer_acoustic(output_semantic, voice)
         logging.debug(f"acoustic_tokens: {time.time() - start_time}")
 
         start_time = time.time()
@@ -323,13 +277,9 @@ class PhemeClient():
             output_scores=True
         )
 
-        voice_data = self.input_file[voice]
-        prompt_file_path = voice_data["audio_prompt_filepath"]
-        text = voice_data["text"] + " " + text
+        text = self.prompt_text + " " + text
 
-        audio_array = self.generate_audio(
-            text, voice, sampling_config, prompt_file_path)
-
+        audio_array = self.generate_audio(text, voice, sampling_config)
         return audio_array
 
 
@@ -337,7 +287,6 @@ if __name__ == "__main__":
     args = parse_arguments()
     args.outputdir = Path(args.outputdir).expanduser()
     args.outputdir.mkdir(parents=True, exist_ok=True)
-    args.manifest_path = Path(args.manifest_path).expanduser()
 
     client = PhemeClient(args)
     audio_array = client.infer(args.text, voice=args.voice)
