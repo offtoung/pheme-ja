@@ -20,7 +20,7 @@ conda activate pheme3
 
 pip3 install torch torchvision torchaudio
 pip3 install -r requirements.txt --no-deps
-pip3 install mecab-python3 jaconv
+pip3 install mecab-python3 unidic-lite jaconv
 ```
 
 事前学習済みの SpeechTokenizer のダウンロード
