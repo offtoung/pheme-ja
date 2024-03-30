@@ -19,6 +19,7 @@ from transformers import GenerationConfig, T5ForConditionalGeneration
 
 import constants as c
 from data.collation import get_text_semantic_token_collater
+from data.semantic_dataset import TextTokenizer
 from modules.s2a_model import Pheme
 from modules.vocoder import VocoderType
 
@@ -98,7 +99,6 @@ class Phonemizer():
       pos = jl.find(":") 
 
     #jl = jl.replace("_", " ")
-    print(jl)
     return list(jl)
 
 # How many times one token can be generated
@@ -138,6 +138,7 @@ class PhemeClient():
         self.outputdir = args.outputdir
         self.target_sample_rate = args.target_sample_rate
         self.collater = get_text_semantic_token_collater(args.text_tokens_file)
+        #self.phonemizer = TextTokenizer()
         self.phonemizer = Phonemizer()
     
         # T2S model
@@ -176,7 +177,7 @@ class PhemeClient():
         labels = [str(lbl) for lbl in semantic_prompt]
         labels = self.collater([labels])[:, :-1]
         decoder_input_ids = labels.to(device).long()
-        logging.debug(f"decoder_input_ids: {decoder_input_ids}")
+        #logging.debug(f"decoder_input_ids: {decoder_input_ids}")
 
         counts = 1E10
         while (counts > MAX_TOKEN_COUNT):
