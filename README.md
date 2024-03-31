@@ -4,7 +4,11 @@
 
 本リポジトリは、「ローカル LLM に向き合う会」と「メタデータラボ株式会社」の共催で開催された、[LOCAL AI HACKATHON#000](https://imminent-land-e64.notion.site/LOCAL-AI-HACKATHON-b8045ad0a99d40aaaa8591e41c5a6660) の成果物です。
 
+本リポジトリのライセンスは Pheme 公式リポジトリと同じですが、[Hugging Face で公開している音声モデル](https://huggingface.co/offtoung/pheme-ja) (以下、本モデルと表記) については、下記の利用条件を守ってご利用ください。
+
+## モデルの利用条件
 **本モデルで生成した音声を公開する場合には使用した声のクレジットを記載してください。**
+
 現在使用可能な声は、[黄琴海月さん](https://kikyohiroto1227.wixsite.com/kikoto-utau/kurage) と [ルナイトネイルさん](https://runaitoneiru.fanbox.cc/posts/3786422) です。
 
 本モデルは、下記の禁止事項に該当する行為を除き、自由にご利用いただけます。
