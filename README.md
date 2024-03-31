@@ -14,6 +14,10 @@
 ・犯罪目的、差別目的、誹謗中傷目的、その他社会通念上不適切な目的で利用する行為
 
 # 環境セットアップ
+リポジトリのクローン
+```
+git clone https://github.com/offtoung/pheme-ja.git
+```
 
 conda 環境の作成:
 
