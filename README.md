@@ -1,6 +1,8 @@
 # 日本語版 Pheme 音声合成モデル
 
-このリポジトリは、音声合成モデル Pheme (https://github.com/PolyAI-LDN/pheme) を日本語向けにカスタマイズしたものです。Pheme の詳細については、元論文 [Pheme: Efficient and Conversational Speech Generation](https://arxiv.org/pdf/2401.02839.pdf) をご覧ください。
+このリポジトリは、音声合成モデル Pheme (https://github.com/PolyAI-LDN/pheme) を日本語向けにカスタマイズしたものです。
+
+Pheme の詳細については、元論文 [Pheme: Efficient and Conversational Speech Generation](https://arxiv.org/pdf/2401.02839.pdf) をご覧ください。
 
 本リポジトリは、「ローカル LLM に向き合う会」と「メタデータラボ株式会社」の共催で開催された、[LOCAL AI HACKATHON#000](https://imminent-land-e64.notion.site/LOCAL-AI-HACKATHON-b8045ad0a99d40aaaa8591e41c5a6660) の成果物です。
 
@@ -18,6 +20,8 @@
 ・犯罪目的、差別目的、誹謗中傷目的、その他社会通念上不適切な目的で利用する行為
 
 # 環境セットアップ
+※手軽に試せる notebook を Google Colab で公開しています。https://colab.research.google.com/drive/1sumW8xitlhiatyWTy0cso4Q7Ph94CB-1?usp=sharing
+
 リポジトリのクローン
 ```
 git clone https://github.com/offtoung/pheme-ja.git
