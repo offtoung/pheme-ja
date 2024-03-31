@@ -1,8 +1,8 @@
 # 日本語版 Pheme 音声合成モデル
 
-このリポジトリは、音声合成モデル Pheme (https://github.com/PolyAI-LDN/pheme) を日本語向けにカスタマイズしたものです。
+このリポジトリは、音声合成モデル Pheme (https://github.com/PolyAI-LDN/pheme) を日本語向けにカスタマイズしたものです。Pheme の詳細については、元論文 [Pheme: Efficient and Conversational Speech Generation](https://arxiv.org/pdf/2401.02839.pdf) をご覧ください。
 
-Pheme の詳細については、元論文 [Pheme: Efficient and Conversational Speech Generation](https://arxiv.org/pdf/2401.02839.pdf) をご覧ください。
+本リポジトリは、「ローカル LLM に向き合う会」と「メタデータラボ株式会社」の共催で開催された、[LOCAL AI HACKATHON#000](https://imminent-land-e64.notion.site/LOCAL-AI-HACKATHON-b8045ad0a99d40aaaa8591e41c5a6660) の成果物です。
 
 **本モデルで生成した音声を公開する場合には使用した声のクレジットを記載してください。**
 現在使用可能な声は、[黄琴海月さん](https://kikyohiroto1227.wixsite.com/kikoto-utau/kurage) と [ルナイトネイルさん](https://runaitoneiru.fanbox.cc/posts/3786422) です。
