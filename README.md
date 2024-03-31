@@ -66,7 +66,27 @@ python transformer_infer.py \
 の 2 名です。
 
 # 学習の実行方法
-準備中
+**※話者の追加希望があれば、[@offtoung](https://twitter.com/offtoung) までご連絡ください。ご本人の許諾が得られている音声については、積極的に追加して公開します。**
+
+本リポジトリのモデルは、Pheme 公式リポジトリ (https://github.com/PolyAI-LDN/pheme) と互換性があります。
+そのため、学習には、Pheme 公式リポジトリを用いることをおすすめします。
+
+注意点は下記のとおりです。
+
+・T2S モデル自体は互換性がありますが、前処理時の音素列への変換 (Phonemizer) には、本リポジトリの transformer_infer.py に含まれる Phonemizer を用いる必要があります。
+
+・S2A モデルの学習は、音声ファイルのみで可能で、書き起こしは必要ありません。
+
+・学習して結果得られたモデルで推論する際には、公式リポジトリを用いることがおすすめです。transformers_infer.py 内の PhemeClient.phonemizer を、本リポジトリの transformers_infer.py 内の Phonemizer に置き換えれば推論ができます。
+
+・もし、学習して得られたモデルを本リポジトリのコードで推論する場合は、voice ディレクトリの直下に話者名のディレクトリを作成し、その直下に、(どれか一つの音声ファイルに対応する) 次の四つのファイルを保存してください。
+
+- acoustic.npy: 前処理において audios-speechtokenizer/acoustic に作成されるファイル
+- semantic.npy: 前処理において audios-speechtokenizer/semantic に作成されるファイル
+- spkr_emb.npy: pyannote.embedding で得た話者埋め込み
+- transcript.txt: 音声の書き起こし
+  
+これについては、Hugging Face のリポジトリ (https://huggingface.co/offtoung/pheme-ja/tree/main) を見ていただくのが分かりやすいと思います。
 
 ## Citation
 
